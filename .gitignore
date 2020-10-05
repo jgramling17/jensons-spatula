@@ -126,3 +126,6 @@ dmypy.json
 
 # run/config file
 *.sh
+
+# api_response.json
+api_response.json

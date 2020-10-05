@@ -1,6 +1,10 @@
 # coding: utf-8
+import threading
+import time
+
 import click
 
+from BestBuyScraper import BestBuyScraper
 from Email import send_email
 from NvidiaScraper import NvidiaScraper
 
@@ -25,17 +29,33 @@ from PersonalInfo import *
 @click.option("--shippingstate", required=True, help="State for shipping")
 @click.option("--shippingzip", required=True, help="ZIP code for shipping")
 @click.option("--botpw", required=True, help="Password for bot's email account")
+@click.option("--bestbuy", is_flag=True, help="Enable best buy scraping")
+@click.option("--bestbuyemail", required=False, help="Email for bestbuy account")
+@click.option("--bestbuypw", required=False, help="Password for bestbuy account")
+@click.option("--bestbuyapikey", required=False, help="Api Key for for bestbuy api account")
 @click.option("--dryrun", '-d', is_flag=True, help="enable a dry run to see if your config will run successfully, will not purchase a real card")
-
 def start_bot(email, firstname, lastname, phonenumber, billingaddress, billingcity,
               billingstate, billingzip, creditcard, expirationmonth, expirationyear,
-              ccv, shippingaddress, shippingcity, shippingstate, shippingzip, botpw, dryrun):
+              ccv, shippingaddress, shippingcity, shippingstate, shippingzip, botpw,
+              bestbuy, bestbuyemail, bestbuypw, bestbuyapikey, dryrun):
     info = make_info(email, firstname, lastname, phonenumber, billingaddress, billingcity,
                      billingstate, billingzip, creditcard, expirationmonth, expirationyear,
-                     ccv, shippingaddress, shippingcity, shippingstate, shippingzip, botpw)
-    fe = NvidiaScraper(info, dryrun)
+                     ccv, shippingaddress, shippingcity, shippingstate, shippingzip, botpw,
+                     bestbuy, bestbuyemail, bestbuypw, bestbuyapikey)
     try:
-        fe.start()
+        scrapers = []
+        Nvidia = NvidiaScraper(info, dryrun)
+        scrapers.append(Nvidia)
+        if bestbuy:
+            Best_Buy = BestBuyScraper(info, dryrun)
+            scrapers.append(Best_Buy)
+        a_stop_event = threading.Event()
+        for scrape in scrapers:
+            x = threading.Thread(target=scrape.start, args=[a_stop_event], daemon=True)
+            x.start()
+        while not a_stop_event.is_set():
+            # wait for an event
+            time.sleep(0.1)
         #used to suspend selenium to keep the browser alive, so the user can double check that it succeeded
         print("It appears the script has ran successfully \n"
               "Please check the browser session for a confirmation page\n"
@@ -46,6 +66,7 @@ def start_bot(email, firstname, lastname, phonenumber, billingaddress, billingci
                    f"Exception listed below: "
                    f"{e}",
                    info.botpw)
+
         raise
 
 
