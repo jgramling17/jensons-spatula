@@ -16,7 +16,8 @@ pip install -r requirements.txt
 ```
 
 ## Usage
-Create yourself a 'config' file to run from the command line
+Create yourself a 'config' file to run from the command line 
+NOTE THIS NEEDS TO BE ALL ON ONE LINE
 
 Example file:
 ```bash
