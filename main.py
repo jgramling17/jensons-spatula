@@ -6,7 +6,7 @@ import click
 
 from BestBuyScraper import BestBuyScraper
 from Email import send_email
-from NvidiaScraper import NvidiaScraper
+from Common import *
 
 from PersonalInfo import *
 
@@ -29,7 +29,9 @@ from PersonalInfo import *
 @click.option("--shippingstate", required=True, help="State for shipping")
 @click.option("--shippingzip", required=True, help="ZIP code for shipping")
 @click.option("--botpw", required=True, help="Password for bot's email account")
-@click.option("--bestbuy", is_flag=True, help="Enable best buy scraping")
+@click.option("--scrape3070", is_flag=True, help="Enable 3070 scraping")
+@click.option("--scrape3080", is_flag=True, help="Enable 3080 scraping")
+@click.option("--scrape3090", is_flag=True, help="Enable 3090 scraping")
 @click.option("--bestbuyemail", required=False, help="Email for bestbuy account")
 @click.option("--bestbuypw", required=False, help="Password for bestbuy account")
 @click.option("--bestbuyapikey", required=False, help="Api Key for for bestbuy api account")
@@ -37,19 +39,30 @@ from PersonalInfo import *
 def start_bot(email, firstname, lastname, phonenumber, billingaddress, billingcity,
               billingstate, billingzip, creditcard, expirationmonth, expirationyear,
               ccv, shippingaddress, shippingcity, shippingstate, shippingzip, botpw,
-              bestbuy, bestbuyemail, bestbuypw, bestbuyapikey, dryrun):
+              scrape3070, scrape3080, scrape3090, bestbuyemail, bestbuypw, bestbuyapikey,
+              dryrun):
     info = make_info(email, firstname, lastname, phonenumber, billingaddress, billingcity,
                      billingstate, billingzip, creditcard, expirationmonth, expirationyear,
                      ccv, shippingaddress, shippingcity, shippingstate, shippingzip, botpw,
-                     bestbuy, bestbuyemail, bestbuypw, bestbuyapikey)
+                     bestbuyemail, bestbuypw, bestbuyapikey)
     try:
         scrapers = []
-        Nvidia = NvidiaScraper(info, dryrun)
-        scrapers.append(Nvidia)
-        if bestbuy:
-            Best_Buy = BestBuyScraper(info, dryrun)
+        #Nvidia no longer selling on their site :(
+        #Nvidia = NvidiaScraper(info, dryrun)
+        #scrapers.append(Nvidia)
+        if scrape3070:
+            Best_Buy = BestBuyScraper(info, "3070", dryrun)
+            scrapers.append(Best_Buy)
+        if scrape3080:
+            Best_Buy = BestBuyScraper(info, "3080", dryrun)
+            scrapers.append(Best_Buy)
+        if scrape3090:
+            Best_Buy = BestBuyScraper(info, "3090", dryrun)
             scrapers.append(Best_Buy)
         a_stop_event = threading.Event()
+        if not scrapers:
+            warn("You must scrape one card, please use --scrape3070, --scrape3080, and or --scrape3090")
+            a_stop_event.set()
         for scrape in scrapers:
             x = threading.Thread(target=scrape.start, args=[a_stop_event], daemon=True)
             x.start()

@@ -66,7 +66,7 @@ class NvidiaScraper:
     def start_scraping(self, finished_event):
         api_scrape = True
         api_scraper = NvidiaApiScraper(self.personal_info, self.quick_checkout_url)
-        while not self.found_card or not finished_event.is_set():
+        while not self.found_card and not finished_event.is_set():
             if api_scrape is True:
                 api_scrape = api_scraper.start()
             else:

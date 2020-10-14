@@ -37,11 +37,14 @@ class NvidiaApiScraper:
         r = requests.get(self.search_gpu_api_url)
         if r.status_code == requests.codes.ok:
             json_resp = r.json()
-            stock_status = json_resp["searchedProducts"]["productDetails"][0]["purchaseOption"]
-            if stock_status in [self.out_of_stock, ""]:
+            product = json_resp["searchedProducts"]["productDetails"][0]
+            stock_status = product["purchaseOption"]
+            product_status = product["prdStatus"]
+            if stock_status in [self.out_of_stock, ""] and product_status not in [self.check_availability]:
                 no_stock("Nvidia", self.card)
-            elif stock_status in [self.check_availability]:
-                good_info(f"Nvidia: potential in stock from search-api, {self.card}: {stock_status}")
+            elif product_status in [self.check_availability]:
+                info(f"Nvidia: potential in stock from search-api, {self.card}: {stock_status}")
+                self.search_api_retailer_parse(product["retailers"])
             elif stock_status in [self.buy_now, self.in_stock, self.add_to_cart]:
                 in_stock("Nvidia", self.card)
                 send_email(self.personal_info.email,
@@ -52,8 +55,41 @@ class NvidiaApiScraper:
                 return True
         return False
 
+    def search_api_retailer_parse(self, retailers):
+        for offer in retailers:
+            #Our bestbuy api scraper will handle this
+            if offer["partnerId"] == '2':
+                continue
+            #Nvidia
+            elif offer["partnerId"] == '111':
+                if offer["stock"] != 0 or offer["isAvailable"] or offer["directPurchaseLink"] is not None:
+                    in_stock("Nvidia", self.card)
+                    send_email(self.personal_info.email,
+                               "IN STOCK CARD GET BACK TO COMPUTER",
+                               "USE THIS LINK TO TRY AND ADD TO CART AND GET GOING:\n"
+                               f"regular link: {offer['purchaseLink']}\n"
+                               f"direct purchase link: {offer['directPurchaseLink']}\n",
+                               self.personal_info.botpw)
+                else:
+                    no_stock("Nvidia", self.card)
+
+
+
     def aval_api_scrape(self):
-        r = requests.get(self.aval_gpu_api_url)
+        payload = {}
+        headers = {
+            'authority': 'api-prod.nvidia.com',
+            'accept': 'application/json, text/javascript, */*; q=0.01',
+            'user-agent': get_random_user_agent(),
+            'dnt': '1',
+            'origin': 'https://www.nvidia.com',
+            'sec-fetch-site': 'same-site',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-dest': 'empty',
+            'referer': 'https://www.nvidia.com/en-us/geforce/graphics-cards/30-series/rtx-3080/',
+            'accept-language': 'en-CA,en-GB;q=0.9,en-US;q=0.8,en;q=0.7'
+        }
+        r = requests.request("GET", self.aval_gpu_api_url, headers=headers, data=payload)
         if r.status_code == requests.codes.ok:
             good_info("Nvidia Api is up!")
             if self.experimental_api_up_notification < 1:

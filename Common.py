@@ -11,11 +11,10 @@ from WebDriverEnv import get_webdriver_path
 init()
 
 
-def get_browser():
+def get_browser(random_user_agent=True):
     web_driver_bin = get_webdriver_path()
     options = webdriver.ChromeOptions()
-    ua = UserAgent()
-    userAgent = ua.random
+    userAgent = get_random_user_agent() if random_user_agent else get_normal_user_agent()
     options.add_argument(f'user-agent={userAgent}')
     options.add_argument("start-maximized");
     options.add_argument("enable-automation");
@@ -26,6 +25,12 @@ def get_browser():
     options.add_argument("--disable-gpu");
     options.add_argument("--no-proxy-server");
     return webdriver.Chrome(web_driver_bin, chrome_options=options)
+
+def get_random_user_agent():
+    return UserAgent().random
+
+def get_normal_user_agent():
+    return 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0'
 
 def fill_out_textbox(driver, sel, text):
     driver.find_element_by_css_selector(sel).send_keys(text)
