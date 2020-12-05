@@ -13,6 +13,7 @@ class BestBuyApiScraper:
         self.personal_info = personal_info
         self.search_fe_api_url = f"https://api.bestbuy.com/v1/products((search={self.fe_card_sku})&onlineAvailability=true)?apiKey={personal_info.bestbuyapikey}&show=addToCartUrl&format=json"
         self.search_all_api_url = f"https://api.bestbuy.com/v1/products((search=rtx&search=3080)&onlineAvailability=true&(categoryPath.id=abcat0507002))?apiKey={personal_info.bestbuyapikey}&sort=name.asc&show=addToCartUrl,name&pageSize=50&format=json"
+        self.search_all_api_url = f"https://api.bestbuy.com/v1/products((search=rtx&search=3080)&(categoryPath.id=abcat0507002))?apiKey={personal_info.bestbuyapikey}&sort=name.asc&show=addToCartUrl,name,url&pageSize=50&format=json"
 
     def start(self):
         keep_api_scraping = True
@@ -69,3 +70,12 @@ class BestBuyApiScraper:
         else:
             warn(f"BestBuy Api error: {r.status_code}")
         return
+
+    def get_all_aib_card_urls(self):
+        r = requests.get(self.search_all_api_url)
+        if r.status_code == requests.codes.ok:
+            json_resp = r.json()
+            if json_resp["products"]:
+                return json_resp["products"]
+
+

@@ -128,4 +128,4 @@ dmypy.json
 *.sh
 
 # api_response.json
-api_response.json
+*_network_logs_*.json

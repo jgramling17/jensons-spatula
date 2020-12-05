@@ -31,6 +31,7 @@ from PersonalInfo import *
 @click.option("--botpw", required=True, help="Password for bot's email account")
 @click.option("--scrape3070", is_flag=True, help="Enable 3070 scraping")
 @click.option("--scrape3080", is_flag=True, help="Enable 3080 scraping")
+@click.option("--scrape3080aib", is_flag=True, help="Enable all 3080 scraping including aib")
 @click.option("--scrape3090", is_flag=True, help="Enable 3090 scraping")
 @click.option("--bestbuyemail", required=False, help="Email for bestbuy account")
 @click.option("--bestbuypw", required=False, help="Password for bestbuy account")
@@ -39,7 +40,7 @@ from PersonalInfo import *
 def start_bot(email, firstname, lastname, phonenumber, billingaddress, billingcity,
               billingstate, billingzip, creditcard, expirationmonth, expirationyear,
               ccv, shippingaddress, shippingcity, shippingstate, shippingzip, botpw,
-              scrape3070, scrape3080, scrape3090, bestbuyemail, bestbuypw, bestbuyapikey,
+              scrape3070, scrape3080, scrape3080aib, scrape3090, bestbuyemail, bestbuypw, bestbuyapikey,
               dryrun):
     info = make_info(email, firstname, lastname, phonenumber, billingaddress, billingcity,
                      billingstate, billingzip, creditcard, expirationmonth, expirationyear,
@@ -54,7 +55,10 @@ def start_bot(email, firstname, lastname, phonenumber, billingaddress, billingci
             Best_Buy = BestBuyScraper(info, "3070", dryrun)
             scrapers.append(Best_Buy)
         if scrape3080:
-            Best_Buy = BestBuyScraper(info, "3080", dryrun)
+            Best_Buy = BestBuyScraper(info, "3080 FE", dryrun)
+            scrapers.append(Best_Buy)
+        if scrape3080aib:
+            Best_Buy = BestBuyScraper(info, "3080 aib", dryrun)
             scrapers.append(Best_Buy)
         if scrape3090:
             Best_Buy = BestBuyScraper(info, "3090", dryrun)
